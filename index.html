@@ -133,17 +133,11 @@
         <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Donaciones</h2>
         <p class="mt-3 text-neutral-600 max-w-prose">
           Cada $100 MXN alimenta a un perro por 3 días. El MVP usa un <b>checkout alojado</b> (Stripe/PayPal) sin almacenar tarjetas.
-          En producción, añadiremos confirmación y recibo automático por correo.
         </p>
         <div class="mt-5 flex flex-wrap gap-3">
           <button id="btn-donate-a" class="btn-rr">Donar $200 MXN</button>
           <button id="btn-donate-b" class="rounded-xl px-4 py-2 bg-white border border-neutral-200 hover:border-neutral-300">Donar otra cantidad</button>
         </div>
-        <ul class="mt-6 text-sm text-neutral-600 list-disc pl-5">
-          <li>Pagos seguros (Checkout alojado).</li>
-          <li>Sin almacenar tarjetas en nuestro servidor.</li>
-          <li>Recibo y agradecimiento por correo.</li>
-        </ul>
       </div>
       <div class="order-1 lg:order-2">
         <img
@@ -162,7 +156,6 @@
       <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Transparencia</h2>
       <p class="mt-3 text-neutral-600 max-w-prose">
         Publicaremos reportes mensuales de ingresos/egresos, evidencias de gastos y casos de éxito.
-        La conexión a base de datos llega en la siguiente iteración.
       </p>
       <div class="mt-8 grid md:grid-cols-3 gap-6">
         <div class="card-link">
@@ -199,20 +192,20 @@
         <div class="grid md:grid-cols-2 gap-4">
           <div>
             <label class="text-sm font-medium">Nombre</label>
-            <input id="c-name" placeholder="Tu nombre" class="mt-1 w-full rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-rr-primary p-3" />
+            <input id="c-name" placeholder="Tu nombre" class="mt-1 w-full rounded-xl border border-neutral-300 p-3" />
           </div>
           <div>
             <label class="text-sm font-medium">Correo</label>
-            <input id="c-email" type="email" placeholder="tucorreo@ejemplo.com" class="mt-1 w-full rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-rr-primary p-3" />
+            <input id="c-email" type="email" placeholder="tucorreo@ejemplo.com" class="mt-1 w-full rounded-xl border border-neutral-300 p-3" />
           </div>
         </div>
         <div class="mt-4">
           <label class="text-sm font-medium">Asunto</label>
-          <input id="c-subject" placeholder="Quiero adoptar a..." class="mt-1 w-full rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-rr-primary p-3" />
+          <input id="c-subject" placeholder="Quiero adoptar a..." class="mt-1 w-full rounded-xl border border-neutral-300 p-3" />
         </div>
         <div class="mt-4">
           <label class="text-sm font-medium">Mensaje</label>
-          <textarea id="c-message" class="mt-1 w-full rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-rr-primary p-3 min-h-[120px]" placeholder="Cuéntanos más..."></textarea>
+          <textarea id="c-message" class="mt-1 w-full rounded-xl border border-neutral-300 p-3 min-h-[120px]" placeholder="Cuéntanos más..."></textarea>
         </div>
         <div class="mt-6 flex items-center justify-between">
           <div class="text-xs text-neutral-500">Al enviar aceptas el <a class="underline" href="privacidad.html">Aviso de privacidad</a>.</div>
@@ -226,7 +219,7 @@
   <section id="admin" class="py-16 bg-white border-t border-neutral-200">
     <div class="max-w-6xl mx-auto px-4">
       <h2 class="text-2xl font-extrabold tracking-tight">Admin · Registro de animales (MVP)</h2>
-      <p class="text-sm text-neutral-600 mt-2">En modo sin backend se guarda en <code>localStorage</code>. Con backend se envía a <code>/api/animals</code>.</p>
+      <p class="text-sm text-neutral-600 mt-2">En modo sin backend se guarda en <code>localStorage</code>. Con backend se enviará a <code>/api/animals</code>.</p>
       <form id="animal-form" class="mt-6 grid md:grid-cols-3 gap-4 rounded-2xl bg-white p-6 border border-neutral-200 shadow-sm">
         <input id="a-name" class="input" placeholder="Nombre" />
         <select id="a-age" class="input">
@@ -264,9 +257,8 @@
   <div id="toast-root" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
   <div id="cookie-root"></div>
 
-  <script>
-    window.API_BASE = ""; /* "" => mismo dominio | "https://tu-api.onrender.com" => API externa */
-  </script>
+  <!-- Opción 1: stand-alone (sin backend) -->
+  <script>window.API_BASE="";</script>
   <script src="app.js"></script>
 </body>
 </html>
