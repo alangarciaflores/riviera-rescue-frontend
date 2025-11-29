@@ -1,3 +1,4 @@
+// ===== Utilidades básicas =====
 const API_BASE = (window.API_BASE || "").trim();
 const $  = s => document.querySelector(s);
 $("#year").textContent = new Date().getFullYear();
@@ -10,6 +11,7 @@ function toast(text, kind="success"){
                        "bg-neutral-50 border-neutral-200 text-neutral-800"
   );
   ($("#toast-root")).appendChild(t);
+  t.textContent = text;
   setTimeout(()=> t.remove(), 3000);
 }
 function openModal(html){
@@ -24,28 +26,17 @@ function openModal(html){
   return root;
 }
 
-// API client (auto fallback localStorage)
+// ===== Cliente API (deshabilitado en modo offline) =====
 let API_OK = false;
-async function api(path, opts={}){
-  if(!API_OK) throw new Error("API no disponible");
-  const res = await fetch((API_BASE || "") + path, {
-    headers: {"Content-Type":"application/json"},
-    credentials: "include",
-    ...opts
-  });
-  if(!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-async function detectAPI(){
-  try{ const r = await fetch((API_BASE||"") + "/api/health", {cache:"no-store"}); API_OK = r.ok; }
-  catch{ API_OK = false; }
-}
+async function api(path, opts={}){ throw new Error("API no disponible en modo offline"); }
+
+// ===== Almacenamiento local =====
 const LS = {
   get(k, def){ try{ return JSON.parse(localStorage.getItem(k) || JSON.stringify(def)); }catch{ return def; } },
   set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
 };
 
-// Datos demo
+// ===== Datos demo =====
 const DEMO_DOGS = [
   { id:1, nombre:"Luna",  edad:"Cachorra", tam:"Pequeño", estado:"Disponible",
     img:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1200&auto=format&fit=crop",
@@ -58,6 +49,7 @@ const DEMO_DOGS = [
     descripcion:"Juguetona, necesita jardín o paseos largos." },
 ];
 
+// ===== UI: Donaciones =====
 function openDonation(amount=200){
   let current = amount;
   const presets = [100,200,300,500];
@@ -99,6 +91,7 @@ function openDonation(amount=200){
   });
 }
 
+// ===== UI: Detalle de perro =====
 function openDog(dog){
   const html = `<img src="${dog.img}" alt="${dog.nombre}" class="w-full aspect-[4/3] object-cover"/>
     <div class="p-5">
@@ -126,10 +119,8 @@ function openDog(dog){
   };
 }
 
+// ===== Datos (offline) =====
 async function apiGetAnimals(){
-  if(API_OK){
-    const data = await api("/api/animals"); return data.items || [];
-  }
   let items = LS.get("rr_animals", null);
   if(!items){ items = DEMO_DOGS; LS.set("rr_animals", items); }
   return items;
@@ -177,6 +168,8 @@ async function renderDogs(){
     grid.appendChild(card);
   }
 }
+
+// ===== Formularios =====
 document.querySelector("#contact-form").addEventListener("submit", async (e)=>{
   e.preventDefault();
   const name = document.querySelector("#c-name").value.trim();
@@ -184,23 +177,21 @@ document.querySelector("#contact-form").addEventListener("submit", async (e)=>{
   const msg  = document.querySelector("#c-message").value.trim();
   const subject=document.querySelector("#c-subject").value.trim();
   if(!name || !email || !msg) return toast("Completa nombre, correo y mensaje.","error");
-  const ok = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if(!ok) return toast("Correo inválido.","error");
-  try{
-    if(API_OK){
-      await api("/api/contact", {method:"POST", body:JSON.stringify({name,email,subject,message:msg})});
-    } else {
-      const msgs = LS.get("rr_contacts", []);
-      msgs.push({id:Date.now(),name,email,subject,message:msg,createdAt:new Date().toISOString()});
-      LS.set("rr_contacts", msgs);
-    }
-    ["#c-name","#c-email","#c-subject","#c-message"].forEach(s=> document.querySelector(s).value="");
-    toast("¡Mensaje enviado! Responderemos en 48 h hábiles.","success");
-  }catch(err){ toast("No se pudo enviar. Intenta de nuevo.","error"); }
+
+  // Modo offline: guardamos en localStorage
+  const msgs = LS.get("rr_contacts", []);
+  msgs.push({id:Date.now(),name,email,subject,message:msg,createdAt:new Date().toISOString()});
+  LS.set("rr_contacts", msgs);
+
+  ["#c-name","#c-email","#c-subject","#c-message"].forEach(s=> document.querySelector(s).value="");
+  toast("¡Mensaje enviado! Responderemos en 48 h hábiles.","success");
 });
 document.querySelector("#btn-donate-a").onclick = ()=> openDonation(200);
 document.querySelector("#btn-donate-b").onclick = ()=> openDonation(300);
 ["#f-size","#f-age","#f-q"].forEach(sel=> document.querySelector(sel).addEventListener("input", renderDogs));
+
 document.querySelector("#animal-form").addEventListener("submit", async (e)=>{
   e.preventDefault();
   const name = document.querySelector("#a-name").value.trim();
@@ -210,22 +201,19 @@ document.querySelector("#animal-form").addEventListener("submit", async (e)=>{
   const status = document.querySelector("#a-status").value.trim() || "Disponible";
   const desc = document.querySelector("#a-desc").value.trim();
   if(!name || !edad || !tam || !img || !desc) return toast("Completa todos los campos del animal.","error");
-  const payload = { nombre:name, edad, tam, imageUrl:img, descripcion:desc, estado:status };
-  try{
-    if(API_OK){
-      await api("/api/animals",{method:"POST", body:JSON.stringify(payload)});
-    } else {
-      const list = await apiGetAnimals();
-      const nextId = Math.max(0, ...list.map(x=>x.id||0)) + 1;
-      list.push({ id:nextId, nombre:name, edad, tam, estado:status, img, descripcion:desc });
-      LS.set("rr_animals", list);
-    }
-    document.querySelector("#animal-form").reset();
-    toast("Animal registrado.","success");
-    renderDogs();
-  }catch(err){ toast("No se pudo registrar. Intenta más tarde.","error"); }
+
+  const list = await apiGetAnimals();
+  const nextId = Math.max(0, ...list.map(x=>x.id||0)) + 1;
+  list.push({ id:nextId, nombre:name, edad, tam, estado:status, img, descripcion:desc });
+  LS.set("rr_animals", list);
+
+  document.querySelector("#animal-form").reset();
+  toast("Animal registrado.","success");
+  renderDogs();
 });
 document.querySelector("#a-cancel").addEventListener("click", ()=> document.querySelector("#animal-form").reset());
+
+// ===== Cookies banner =====
 (function cookies(){
   if(localStorage.getItem("rrac_cookies_accepted")==="1") return;
   const banner = document.createElement("div");
@@ -240,7 +228,9 @@ document.querySelector("#a-cancel").addEventListener("click", ()=> document.quer
   document.body.appendChild(banner);
   banner.querySelector("#cookies-accept").onclick = ()=>{ localStorage.setItem("rrac_cookies_accepted","1"); banner.remove(); };
 })();
-(async function init(){
-  try{ const r = await fetch((API_BASE||"") + "/api/health", {cache:"no-store"}); API_OK = r.ok; }catch{ API_OK=false; }
+
+// ===== Init (100% offline) =====
+(function init(){
+  API_OK = false; // modo 100% offline
   renderDogs();
 })();
